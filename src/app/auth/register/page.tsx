@@ -2,12 +2,16 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Mail, Phone, Lock, User, Eye, EyeOff, ArrowLeft, Store } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Mail, Phone, Lock, User, Eye, EyeOff, ArrowLeft, Store, Loader2 } from "lucide-react";
 
 export default function RegisterPage() {
+  const router = useRouter();
   const [method, setMethod] = useState<"email" | "phone">("phone");
   const [role, setRole] = useState<"buyer" | "seller">("buyer");
   const [showPassword, setShowPassword] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "",
     identifier: "",
@@ -17,15 +21,61 @@ export default function RegisterPage() {
     city: "",
   });
 
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+
+    if (form.password !== form.confirmPassword) {
+      setError("رمز عبور و تکرار آن یکسان نیست");
+      return;
+    }
+    if (form.password.length < 8) {
+      setError("رمز عبور باید حداقل ۸ کاراکتر باشد");
+      return;
+    }
+    if (role === "seller" && !form.shopName.trim()) {
+      setError("نام فروشگاه الزامی است");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.name,
+          email: method === "email" ? form.identifier.trim() : undefined,
+          phone: method === "phone" ? form.identifier.trim() : undefined,
+          password: form.password,
+          role: role === "seller" ? "SELLER" : "BUYER",
+          shopName: role === "seller" ? form.shopName : undefined,
+          city: form.city || undefined,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "خطا در ثبت‌نام");
+        return;
+      }
+      router.push(role === "seller" ? "/seller/dashboard" : "/");
+      router.refresh();
+    } catch {
+      setError("خطا در برقراری ارتباط با سرور");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="w-16 h-16 mx-auto rounded-2xl bg-primary flex items-center justify-center text-white font-black text-2xl mb-4">
-            م
+            پ
           </div>
-          <h1 className="text-2xl font-black">ثبت‌نام در مکان</h1>
+          <h1 className="text-2xl font-black">ثبت‌نام در پارت شاپ</h1>
           <p className="text-sm text-muted mt-2">حساب کاربری جدید بسازید</p>
         </div>
 
@@ -75,7 +125,12 @@ export default function RegisterPage() {
           </div>
 
           {/* Form */}
-          <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {error && (
+              <div className="bg-red-500/10 border border-red-500/30 text-red-500 rounded-xl px-4 py-3 text-sm">
+                {error}
+              </div>
+            )}
             {/* Name */}
             <div>
               <label className="block text-xs font-medium text-muted-foreground mb-2">نام و نام خانوادگی</label>
@@ -191,10 +246,12 @@ export default function RegisterPage() {
 
             <button
               type="submit"
-              className="w-full h-12 bg-primary hover:bg-primary-hover text-white rounded-xl font-bold text-sm transition-colors flex items-center justify-center gap-2"
+              disabled={saving}
+              className="w-full h-12 bg-primary hover:bg-primary-hover disabled:opacity-60 disabled:cursor-not-allowed text-white rounded-xl font-bold text-sm transition-colors flex items-center justify-center gap-2"
             >
+              {saving && <Loader2 className="w-4 h-4 animate-spin" />}
               {role === "seller" ? "ثبت‌نام فروشنده" : "ثبت‌نام"}
-              <ArrowLeft className="w-4 h-4" />
+              {!saving && <ArrowLeft className="w-4 h-4" />}
             </button>
           </form>
         </div>

@@ -1,10 +1,22 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { Star, ShoppingCart, Heart, Truck, Shield, RotateCcw, Store } from "lucide-react";
-import { products, formatPrice, getDiscountPercent } from "@/lib/data";
+import { getProductBySlug, getProductById } from "@/lib/db";
+import { formatPrice, getDiscountPercent } from "@/lib/data";
+import AddToCartButton from "@/components/AddToCartButton";
+import WishlistButton from "@/components/WishlistButton";
 
 export default async function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const product = products.find((p) => p.slug === id || p.id === id) || products[0];
+  // dynamic params may arrive URL-encoded (e.g. Persian slugs) — try both forms
+  const decoded = id.includes("%") ? decodeURIComponent(id) : id;
+  const product =
+    (await getProductBySlug(id)) ??
+    (await getProductBySlug(decoded)) ??
+    (await getProductById(id)) ??
+    (await getProductById(decoded));
+
+  if (!product) notFound();
 
   const discount = getDiscountPercent(product.price, product.originalPrice);
 
@@ -87,13 +99,8 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 
             {/* Actions */}
             <div className="flex items-center gap-3">
-              <button className="flex-1 flex items-center justify-center gap-2 h-12 bg-primary hover:bg-primary-hover text-white rounded-xl font-bold text-sm transition-colors">
-                <ShoppingCart className="w-5 h-5" />
-                افزودن به سبد خرید
-              </button>
-              <button className="h-12 w-12 flex items-center justify-center rounded-xl border border-border hover:border-danger hover:text-danger transition-colors">
-                <Heart className="w-5 h-5" />
-              </button>
+              <AddToCartButton productId={product.id} disabled={product.stock <= 0} />
+              <WishlistButton productId={product.id} />
             </div>
 
             {product.stock <= 0 && (
@@ -160,14 +167,28 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             <div className="bg-surface rounded-2xl border border-border p-5">
               <h2 className="font-bold text-sm mb-4">خودروهای سازگار</h2>
               <div className="flex flex-wrap gap-2">
-                {product.compatibleCars.map((pc, i) => (
-                  <span key={i} className="bg-surface-hover text-sm px-3 py-1.5 rounded-lg border border-border">
-                    {pc.carModel.brand.name} {pc.carModel.name}
-                    {pc.yearFrom && pc.yearTo && (
-                      <span className="text-muted mr-1">({pc.yearFrom} - {pc.yearTo})</span>
-                    )}
-                  </span>
-                ))}
+                {product.compatibleCars.map((pc, i) => {
+                  const modelStart = pc.carModel.yearStart ?? pc.yearFrom;
+                  const modelEnd = pc.carModel.yearEnd ?? pc.yearTo;
+                  const from = pc.yearFrom ?? modelStart;
+                  const to = pc.yearTo ?? modelEnd;
+                  let yearLabel = "";
+                  if (from && to && from !== modelStart && to !== modelEnd) {
+                    yearLabel = `(${from} - ${to})`;
+                  } else if (from && from !== modelStart) {
+                    yearLabel = `(${from} به بعد)`;
+                  } else if (to && to !== modelEnd) {
+                    yearLabel = `(تا ${to})`;
+                  } else {
+                    yearLabel = "(تمام سال‌ها)";
+                  }
+                  return (
+                    <span key={i} className="bg-surface-hover text-sm px-3 py-1.5 rounded-lg border border-border">
+                      {pc.carModel.brand.name} {pc.carModel.name}
+                      <span className="text-muted mr-1">{yearLabel}</span>
+                    </span>
+                  );
+                })}
               </div>
             </div>
           )}

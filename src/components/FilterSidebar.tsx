@@ -3,8 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ChevronDown, ChevronUp, X, SlidersHorizontal } from "lucide-react";
-import { categories, subCategories, carBrands, cities, conditions, priceRanges, formatPrice } from "@/lib/data";
-import type { FilterState } from "@/lib/types";
+import { cities, conditions, priceRanges } from "@/lib/data";
+import type { Category, CarBrand, CarModel, FilterState } from "@/lib/types";
 
 function FilterSection({ title, children, defaultOpen = true }: { title: string; children: React.ReactNode; defaultOpen?: boolean }) {
   const [open, setOpen] = useState(defaultOpen);
@@ -24,14 +24,28 @@ export default function FilterSidebar({
   onChange,
   mobileOpen,
   onClose,
+  categories,
+  carBrands,
+  carModels,
 }: {
   filters: FilterState;
   onChange: (f: FilterState) => void;
   mobileOpen?: boolean;
   onClose?: () => void;
+  categories: Category[];
+  carBrands: CarBrand[];
+  carModels: CarModel[];
 }) {
   const [brandExpanded, setBrandExpanded] = useState(false);
   const activeCount = Object.values(filters).filter(Boolean).length;
+  const subCategories = categories.find((c) => c.slug === filters.category)?.children ?? [];
+  const activeModel = carModels.find((m) => m.slug === filters.carModel);
+  const years: number[] = activeModel
+    ? Array.from(
+        { length: (activeModel.yearEnd ?? new Date().getFullYear()) - (activeModel.yearStart ?? 1990) + 1 },
+        (_, i) => (activeModel.yearEnd ?? new Date().getFullYear()) - i
+      )
+    : [];
 
   const content = (
     <div className="space-y-0">
@@ -69,12 +83,18 @@ export default function FilterSidebar({
             </button>
           ))}
         </div>
-        {filters.category && subCategories[filters.category] && (
+        {filters.category && subCategories.length > 0 && (
           <div className="mt-2 mr-6 border-r-2 border-border pr-3 space-y-1">
-            {subCategories[filters.category]!.map((sub) => (
+            {subCategories.map((sub) => (
               <button
                 key={sub.id}
-                onClick={() => onChange({ ...filters, subcategory: filters.subcategory === sub.slug ? undefined : sub.slug })}
+              onClick={() =>
+                onChange({
+                  ...filters,
+                  category: filters.subcategory === sub.slug ? filters.category : sub.slug,
+                  subcategory: filters.subcategory === sub.slug ? undefined : sub.slug,
+                })
+              }
                 className={`block w-full text-right px-2 py-1.5 rounded-md text-xs transition-colors ${
                   filters.subcategory === sub.slug
                     ? "bg-primary/10 text-primary font-medium"
@@ -88,29 +108,80 @@ export default function FilterSidebar({
         )}
       </FilterSection>
 
-      {/* Car Brand */}
-      <FilterSection title="برند خودرو">
-        <div className="space-y-1">
-          {carBrands.slice(0, brandExpanded ? carBrands.length : 5).map((brand) => (
-            <button
-              key={brand.id}
-              onClick={() => onChange({ ...filters, brand: filters.brand === brand.slug ? undefined : brand.slug, carModel: undefined })}
-              className={`flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm transition-colors text-right ${
-                filters.brand === brand.slug
-                  ? "bg-primary/10 text-primary font-medium"
-                  : "hover:bg-surface-hover text-muted-foreground"
-              }`}
-            >
-              <span className="flex-1 text-right">{brand.name}</span>
-              <span className="text-[10px] text-muted">{brand.modelCount} مدل</span>
+      {/* Car: Brand → Model → Year */}
+      <FilterSection title="خودرو">
+        <div className="space-y-2">
+          <div className="space-y-1">
+            {carBrands.slice(0, brandExpanded ? carBrands.length : 5).map((brand) => {
+              const brandModels = carModels.filter((m) => m.brand.slug === brand.slug);
+              const isActive = filters.brand === brand.slug && !filters.carModel;
+              return (
+                <div key={brand.id}>
+                  <button
+                    onClick={() => onChange({ ...filters, brand: filters.brand === brand.slug ? undefined : brand.slug, carModel: undefined, carYear: undefined })}
+                    className={`flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm transition-colors text-right ${
+                      isActive
+                        ? "bg-primary/10 text-primary font-medium"
+                        : "hover:bg-surface-hover text-muted-foreground"
+                    }`}
+                  >
+                    <span className="flex-1 text-right">{brand.name}</span>
+                    <span className="text-[10px] text-muted">{brand.modelCount} مدل</span>
+                  </button>
+                  {filters.brand === brand.slug && brandModels.length > 0 && (
+                    <div className="mt-1 mr-4 border-r-2 border-border pr-2 space-y-1">
+                      {brandModels.map((model) => (
+                        <button
+                          key={model.id}
+                          onClick={() => onChange({ ...filters, carModel: filters.carModel === model.slug ? undefined : model.slug, carYear: undefined })}
+                          className={`block w-full text-right px-2 py-1.5 rounded-md text-xs transition-colors ${
+                            filters.carModel === model.slug
+                              ? "bg-primary/10 text-primary font-medium"
+                              : "hover:bg-surface-hover text-muted-foreground"
+                          }`}
+                        >
+                          {model.name}
+                          {model.yearStart && (
+                            <span className="text-[10px] text-muted mr-1">({model.yearStart}+)</span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          {carBrands.length > 5 && (
+            <button onClick={() => setBrandExpanded(!brandExpanded)} className="text-xs text-primary hover:text-primary-hover mt-2 transition-colors">
+              {brandExpanded ? "کمتر" : "بیشتر..."}
             </button>
-          ))}
+          )}
+
+          {/* Production year */}
+          {activeModel && years.length > 0 && (
+            <div className="pt-3 mt-2 border-t border-border">
+              <label className="block text-xs font-medium text-muted-foreground mb-2">
+                سال ساخت خودرو
+              </label>
+              <select
+                value={filters.carYear ?? ""}
+                onChange={(e) => onChange({ ...filters, carYear: e.target.value ? Number(e.target.value) : undefined })}
+                className="w-full h-10 px-3 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-primary appearance-none cursor-pointer"
+              >
+                <option value="">همه سال‌ها</option>
+                {years.map((y) => (
+                  <option key={y} value={y}>
+                    {y}
+                  </option>
+                ))}
+              </select>
+              <p className="text-[10px] text-muted mt-1.5 leading-relaxed">
+                قطعات سازگار با مدل {activeModel.name} سال {filters.carYear ?? "انتخاب"} نمایش داده می‌شود.
+              </p>
+            </div>
+          )}
         </div>
-        {carBrands.length > 5 && (
-          <button onClick={() => setBrandExpanded(!brandExpanded)} className="text-xs text-primary hover:text-primary-hover mt-2 transition-colors">
-            {brandExpanded ? "کمتر" : "بیشتر..."}
-          </button>
-        )}
       </FilterSection>
 
       {/* Price Range */}

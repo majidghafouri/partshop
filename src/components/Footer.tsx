@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { categories } from "@/lib/data";
+import { getCategories } from "@/lib/db";
 
-export default function Footer() {
+export default async function Footer() {
+  const categories = (await getCategories()).slice(0, 6);
   return (
     <footer className="bg-surface border-t border-border mt-auto">
       {/* Main footer */}
@@ -11,9 +12,9 @@ export default function Footer() {
           <div className="md:col-span-1">
             <Link href="/" className="flex items-center gap-2 mb-4">
               <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white font-bold text-lg">
-                م
+                پ
               </div>
-              <span className="text-xl font-bold">مکان</span>
+              <span className="text-xl font-bold">پارت شاپ</span>
             </Link>
             <p className="text-sm text-muted-foreground leading-relaxed">
               بازار آنلاین لوازم یدکی خودرو. خرید مطمئن قطعات اصل با ضمانت اصالت کالا و ارسال به سراسر کشور.
@@ -24,7 +25,7 @@ export default function Footer() {
           <div>
             <h3 className="font-bold text-sm mb-4">دسته‌بندی‌ها</h3>
             <ul className="space-y-2">
-              {categories.slice(0, 6).map((cat) => (
+              {categories.map((cat) => (
                 <li key={cat.id}>
                   <Link href={`/browse?category=${cat.slug}`} className="text-sm text-muted-foreground hover:text-primary transition-colors">
                     {cat.name}
@@ -66,7 +67,7 @@ export default function Footer() {
             <h3 className="font-bold text-sm mb-4">پشتیبانی</h3>
             <ul className="space-y-2">
               <li className="text-sm text-muted-foreground">تلفن: ۰۲۱-۱۲۳۴۵۶۷۸</li>
-              <li className="text-sm text-muted-foreground">ایمیل: support@mekan.ir</li>
+              <li className="text-sm text-muted-foreground">ایمیل: support@partshop.ir</li>
               <li className="text-sm text-muted-foreground">ساعات کاری: ۹ الی ۱۸</li>
             </ul>
           </div>
@@ -77,7 +78,7 @@ export default function Footer() {
       <div className="border-t border-border">
         <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <p className="text-xs text-muted">
-            © ۱۴۰۵ مکان. تمامی حقوق محفوظ است.
+            © ۱۴۰۵ پارت شاپ. تمامی حقوق محفوظ است.
           </p>
           <div className="flex items-center gap-4 text-xs text-muted">
             <span>حریم خصوصی</span>

@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { Star, ShoppingCart, Eye } from "lucide-react";
+import { Star, ShoppingCart, Eye, Plus } from "lucide-react";
 import { formatPrice, getDiscountPercent } from "@/lib/data";
+import AddToCartButton from "./AddToCartButton";
 import type { Product } from "@/lib/types";
 
 export default function ProductCard({ product }: { product: Product }) {
@@ -109,6 +110,16 @@ export default function ProductCard({ product }: { product: Product }) {
             <span className="text-[10px] text-muted">
               در {new Intl.NumberFormat("fa-IR").format(product.stock)} فروشگاه
             </span>
+          </div>
+
+          {/* Add to cart */}
+          <div className="mt-3 pt-3 border-t border-border">
+            <AddToCartButton
+              productId={product.id}
+              disabled={product.stock <= 0}
+              label="افزودن به سبد"
+              className="w-full flex items-center justify-center gap-2 h-10 px-4 bg-primary/10 text-primary hover:bg-primary hover:text-white disabled:opacity-50 disabled:cursor-not-allowed rounded-xl font-bold text-xs transition-colors"
+            />
           </div>
         </div>
       </div>

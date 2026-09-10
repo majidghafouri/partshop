@@ -1,10 +1,10 @@
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 enum UserRole {
@@ -76,6 +76,39 @@ model User {
   orders         Order[]
   reviews        Review[]
   cartItems      CartItem[]
+  sessions       Session[]
+  wishlist       Wishlist[]
+}
+
+model Wishlist {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model OtpCode {
+  id        String   @id @default(cuid())
+  phone     String
+  code      String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([phone, createdAt])
 }
 
 model SellerProfile {
@@ -126,6 +159,7 @@ model CarModel {
   yearEnd   Int?
 
   products Product[]
+  compatibleCars ProductCar[]
 }
 
 model Product {
@@ -163,6 +197,7 @@ model Product {
   orderItems OrderItem[]
   cartItems  CartItem[]
   compatibleCars ProductCar[]
+  wishlistedBy  Wishlist[]
 }
 
 model ProductImage {

@@ -1,31 +1,67 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Minus, Plus, Trash2, ShoppingCart, ArrowLeft, Truck, Shield } from "lucide-react";
-import { products, formatPrice } from "@/lib/data";
+import { formatPrice } from "@/lib/data";
+import type { Product } from "@/lib/types";
 
-const cartItems = [
-  { product: products[0], quantity: 2 },
-  { product: products[1], quantity: 1 },
-  { product: products[4], quantity: 3 },
-];
+interface CartItem {
+  product: Product;
+  quantity: number;
+}
 
 export default function CartPage() {
-  const [items, setItems] = useState(cartItems);
+  const router = useRouter();
+  const [items, setItems] = useState<CartItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/cart")
+      .then((res) => res.json())
+      .then((data: { items: { productId: string; quantity: number; product: { id: string; title: string; slug: string; price: number; stock: number } }[] }) => {
+        // TODO (auth): API returns basic product info; extend once session cart is wired (Priority 2/5)
+        setItems(
+          data.items.map((item) => ({
+            product: {
+              id: item.product.id,
+              title: item.product.title,
+              slug: item.product.slug,
+              price: item.product.price,
+            } as Product,
+            quantity: item.quantity,
+          }))
+        );
+      })
+      .catch(() => setItems([]))
+      .finally(() => setLoading(false));
+  }, []);
 
   const updateQty = (id: string, delta: number) => {
     setItems((prev) =>
-      prev.map((item) =>
-        item.product.id === id
-          ? { ...item, quantity: Math.max(1, item.quantity + delta) }
-          : item
-      )
+      prev.map((item) => {
+        if (item.product.id !== id) return item;
+        const max = item.product.stock ?? 99;
+        const next = Math.min(max, Math.max(1, item.quantity + delta));
+        if (next !== item.quantity) {
+          fetch("/api/cart", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ productId: id, quantity: next }),
+          })
+            .then(() => router.refresh())
+            .catch(() => {});
+        }
+        return { ...item, quantity: next };
+      })
     );
   };
 
-  const removeItem = (id: string) => {
+  const removeItem = async (id: string) => {
     setItems((prev) => prev.filter((item) => item.product.id !== id));
+    await fetch(`/api/cart?productId=${id}`, { method: "DELETE" }).catch(() => {});
+    router.refresh();
   };
 
   const subtotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
@@ -40,7 +76,9 @@ export default function CartPage() {
         <span className="text-sm font-normal text-muted">({items.length} کالا)</span>
       </h1>
 
-      {items.length === 0 ? (
+      {loading ? (
+        <div className="text-center py-20 text-sm text-muted">در حال بارگذاری...</div>
+      ) : items.length === 0 ? (
         <div className="text-center py-20">
           <ShoppingCart className="w-20 h-20 mx-auto text-border mb-4" />
           <h3 className="text-lg font-bold mb-2">سبد خرید شما خالی است</h3>
@@ -71,7 +109,6 @@ export default function CartPage() {
                   </Link>
                   <div className="text-xs text-muted mt-1">
                     {item.product.brand && <span>{item.product.brand}</span>}
-                    {item.product.seller && <span> • {item.product.seller.shopName}</span>}
                   </div>
                   <div className="text-sm font-bold text-primary mt-2">
                     {formatPrice(item.product.price)}
@@ -82,7 +119,8 @@ export default function CartPage() {
                 <div className="flex items-center gap-2 shrink-0">
                   <button
                     onClick={() => updateQty(item.product.id, -1)}
-                    className="w-8 h-8 rounded-lg bg-surface-hover hover:bg-border flex items-center justify-center transition-colors"
+                    disabled={item.quantity <= 1}
+                    className="w-8 h-8 rounded-lg bg-surface-hover hover:bg-border disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
                   >
                     <Minus className="w-3 h-3" />
                   </button>
@@ -91,7 +129,8 @@ export default function CartPage() {
                   </span>
                   <button
                     onClick={() => updateQty(item.product.id, 1)}
-                    className="w-8 h-8 rounded-lg bg-surface-hover hover:bg-border flex items-center justify-center transition-colors"
+                    disabled={item.quantity >= (item.product.stock ?? 99)}
+                    className="w-8 h-8 rounded-lg bg-surface-hover hover:bg-border disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
                   >
                     <Plus className="w-3 h-3" />
                   </button>
@@ -139,10 +178,13 @@ export default function CartPage() {
                 </div>
               </div>
 
-              <button className="w-full h-12 bg-primary hover:bg-primary-hover text-white rounded-xl font-bold text-sm transition-colors mt-6 flex items-center justify-center gap-2">
+              <Link
+                href="/checkout"
+                className="w-full h-12 bg-primary hover:bg-primary-hover text-white rounded-xl font-bold text-sm transition-colors mt-6 flex items-center justify-center gap-2"
+              >
                 تکمیل خرید
                 <ArrowLeft className="w-4 h-4" />
-              </button>
+              </Link>
 
               {/* Guarantees */}
               <div className="flex items-center justify-center gap-4 mt-4 pt-4 border-t border-border">

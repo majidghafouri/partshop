@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import Header from "@/components/Header";
+import HeaderServer from "@/components/HeaderServer";
 import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
-  title: "مکان | بازار آنلاین لوازم یدکی خودرو",
+  title: "پارت شاپ | بازار آنلاین لوازم یدکی خودرو",
   description: "خرید و فروش لوازم یدکی خودرو با ضمانت اصالت کالا. قطعات موتوری، بدنه، ترمز، برقی و تمامی لوازم یدکی خودروهای ایرانی و خارجی.",
 };
 
@@ -20,7 +20,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         />
       </head>
       <body className="min-h-full flex flex-col bg-background text-foreground" style={{ fontFamily: "Vazirmatn, Tahoma, sans-serif" }}>
-        <Header />
+        <HeaderServer />
         <main className="flex-1">{children}</main>
         <Footer />
       </body>

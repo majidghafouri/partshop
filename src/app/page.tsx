@@ -159,7 +159,7 @@ export default function HomePage() {
       <section className="max-w-7xl mx-auto px-4 py-10">
         <div className="bg-gradient-to-l from-primary/20 via-surface to-accent/10 rounded-3xl border border-border p-8 md:p-12 text-center">
           <h2 className="text-2xl md:text-3xl font-black mb-3">
-            در <span className="text-primary">مکان</span> بفروشید!
+            در <span className="text-primary">پارت شاپ</span> بفروشید!
           </h2>
           <p className="text-muted-foreground text-sm max-w-lg mx-auto mb-6">
             فروشندگان قطعات خودرو، فروشگاه خود را به هزاران مشتری معرفی کنید. ثبت‌نام رایگان، بدون هزینه اولیه.

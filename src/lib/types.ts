@@ -106,6 +106,7 @@ export interface FilterState {
   subcategory?: string;
   brand?: string;
   carModel?: string;
+  carYear?: number;
   yearFrom?: number;
   yearTo?: number;
   priceMin?: number;
