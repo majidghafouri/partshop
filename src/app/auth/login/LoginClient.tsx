@@ -4,11 +4,19 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Mail, Phone, Lock, Eye, EyeOff, ArrowLeft, Loader2, MessageSquare } from "lucide-react";
+import GoogleButton from "@/components/GoogleButton";
+
+const GOOGLE_ERRORS: Record<string, string> = {
+  google_failed: "ورود با گوگل ناموفق بود. دوباره تلاش کنید.",
+  google_not_configured: "ورود با گوگل هنوز پیکربندی نشده است.",
+  google_email_taken: "این ایمیل قبلاً با روش دیگری ثبت شده است. با رمز عبور وارد شوید.",
+};
 
 export default function LoginClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const nextUrl = searchParams.get("next") || null;
+  const googleError = searchParams.get("error");
   const [mode, setMode] = useState<"password" | "otp">("password");
   const [method, setMethod] = useState<"email" | "phone">("phone");
   const [showPassword, setShowPassword] = useState(false);
@@ -149,9 +157,9 @@ export default function LoginClient() {
             </button>
           </div>
 
-          {error && (
+          {(error || googleError) && (
             <div className="bg-red-500/10 border border-red-500/30 text-red-500 rounded-xl px-4 py-3 text-sm mb-4">
-              {error}
+              {error ?? (googleError ? GOOGLE_ERRORS[googleError] ?? "خطا در ورود با گوگل" : "")}
             </div>
           )}
           {info && (
@@ -312,6 +320,14 @@ export default function LoginClient() {
               )}
             </form>
           )}
+
+          {/* Google login */}
+          <div className="flex items-center gap-3 my-6">
+            <div className="flex-1 h-px bg-border" />
+            <span className="text-xs text-muted">یا</span>
+            <div className="flex-1 h-px bg-border" />
+          </div>
+          <GoogleButton next={nextUrl ?? undefined} />
         </div>
 
         {/* Register link */}

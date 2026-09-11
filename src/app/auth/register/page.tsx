@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Mail, Phone, Lock, User, Eye, EyeOff, ArrowLeft, Store, Loader2 } from "lucide-react";
+import GoogleButton from "@/components/GoogleButton";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -254,6 +255,14 @@ export default function RegisterPage() {
               {!saving && <ArrowLeft className="w-4 h-4" />}
             </button>
           </form>
+
+          {/* Google signup */}
+          <div className="flex items-center gap-3 my-6">
+            <div className="flex-1 h-px bg-border" />
+            <span className="text-xs text-muted">یا</span>
+            <div className="flex-1 h-px bg-border" />
+          </div>
+          <GoogleButton />
         </div>
 
         {/* Login link */}
