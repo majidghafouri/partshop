@@ -46,10 +46,49 @@ export default async function SellerDashboardPage() {
     city: dbSeller.city ?? undefined,
   };
 
-  const [products, stats] = await Promise.all([
+  const [products, stats, orders, orderStatusCounts] = await Promise.all([
     getProductsBySeller(seller.id),
     getSellerStats(seller.id),
+    prisma.order.findMany({
+      where: { items: { some: { product: { sellerId: seller.id } } } },
+      include: {
+        user: { select: { id: true, name: true, phone: true } },
+        items: {
+          where: { product: { sellerId: seller.id } },
+          include: { product: { select: { id: true, title: true, slug: true } } },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 50,
+    }),
+    prisma.order.groupBy({
+      by: ["status"],
+      where: { items: { some: { product: { sellerId: seller.id } } } },
+      _count: { _all: true },
+    }),
   ]);
 
-  return <SellerDashboard seller={seller} products={products} stats={stats} />;
+  const statusCounts = Object.fromEntries(orderStatusCounts.map((s) => [s.status, s._count._all]));
+
+  return (
+    <SellerDashboard
+      seller={seller}
+      products={products}
+      stats={stats}
+      orders={orders.map((o) => ({
+        id: o.id,
+        status: o.status,
+        totalAmount: o.totalAmount,
+        createdAt: o.createdAt.toISOString(),
+        customer: { name: o.user.name, phone: o.user.phone },
+        items: o.items.map((it) => ({
+          id: it.id,
+          quantity: it.quantity,
+          price: it.price,
+          title: it.product.title,
+        })),
+      }))}
+      statusCounts={statusCounts}
+    />
+  );
 }

@@ -121,6 +121,10 @@ export default function Header({ categories, user, cartCount }: { categories: Ca
                         پنل فروشنده
                       </Link>
                     )}
+                    <Link href="/account/orders" className="flex items-center gap-3 px-4 py-2.5 hover:bg-surface-hover transition-colors text-sm">
+                      <Package className="w-4 h-4" />
+                      سفارش‌های من
+                    </Link>
                     <button
                       onClick={handleLogout}
                       className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-surface-hover transition-colors text-sm text-red-500"
@@ -142,7 +146,7 @@ export default function Header({ categories, user, cartCount }: { categories: Ca
             )}
             {user ? (
               <Link
-                href={user.role === "SELLER" ? "/seller/dashboard" : "/cart"}
+                href={user.role === "SELLER" ? "/seller/dashboard" : "/account/orders"}
                 className="hidden md:flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 transition-colors text-sm font-medium"
               >
                 {user.role === "SELLER" ? <Store className="w-5 h-5" /> : <Package className="w-5 h-5" />}
@@ -223,6 +227,10 @@ export default function Header({ categories, user, cartCount }: { categories: Ca
                     <span>پنل فروشنده</span>
                   </Link>
                 )}
+                <Link href="/account/orders" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-surface-hover transition-colors">
+                  <Package className="w-5 h-5" />
+                  <span>سفارش‌های من</span>
+                </Link>
                 <Link href="/cart" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-surface-hover transition-colors">
                   <ShoppingCart className="w-5 h-5" />
                   <span>سبد خرید</span>

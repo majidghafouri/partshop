@@ -70,7 +70,7 @@
 - [x] `src/proxy.ts` (Next 16 convention, replaces middleware): redirects `/seller/*` to login with `?next=` when no session cookie
 - [x] Header: logged-in user dropdown (name, seller panel link, logout), logged-out shows ورود|ثبت‌نام; header search wired to `/browse?search=`
 - [x] `AUTH_SECRET` in `.env.local` (needs to be set on Vercel too)
-- [ ] Set `AUTH_SECRET` on Vercel + push Session/OtpCode tables to Neon (prod DB)
+- [x] Set `AUTH_SECRET` on Vercel + push Session/OtpCode/Wishlist tables to Neon (prod DB)
 - [ ] SMS provider for real OTP delivery (Kavenegar / SMS.ir / Farapayamak) — dev returns code in response
 - [ ] Email verification flow
 - [ ] User profile / account page
@@ -97,30 +97,34 @@
 - [ ] Debounced search input
 
 ### Priority 5: Cart & Checkout
-- [x] Cart persisted in DB via `/api/cart` (uses test buyer until auth)
-- [ ] Checkout page (shipping address, city, postal code, phone)
+- [x] Cart persisted in DB via `/api/cart` (session user)
+- [x] Checkout page (shipping address, city, postal code, phone) — `/checkout`
 - [x] Order creation (write to Order + OrderItem tables, stock decremented, prices from DB)
 - [x] Decrement stock on order (inside transaction)
-- [ ] Order confirmation page
+- [x] Order confirmation screen (after placing order, with order code)
 - [ ] Payment integration (ZarinPal / IDPay / NextPay)
 - [ ] Payment callback handling
 
-### Priority 6: Order Management
-- [ ] Buyer: order history page
-- [ ] Buyer: order detail / tracking page
-- [ ] Seller: order list (with filters by status)
-- [ ] Seller: confirm order
-- [ ] Seller: mark as shipped
-- [ ] Buyer: mark as received
-- [ ] Cancellation flow
+### Priority 6: Order Management — ✅ Done (2026-09-11)
+- [x] Buyer: order history page (`/account/orders`, server-rendered, login-protected)
+- [x] Buyer: order detail/tracking page (`/account/orders/[id]`) — status timeline (pending→confirmed→shipped→delivered), items, shipping info, ownership enforced (404 for others)
+- [x] Buyer: mark as received — `PATCH /api/orders` action `receive` (SHIPPED→DELIVERED only)
+- [x] Buyer: cancel own order — `PATCH /api/orders` action `cancel` (PENDING/CONFIRMED→CANCELLED, restores stock + decrements salesCount in transaction)
+- [x] Seller: order list API (`GET /api/seller/orders?status=&page=`) — only orders containing seller's products, status filter + counts, paginated
+- [x] Seller: status transitions API (`PATCH /api/seller/orders/status`) — confirm (PENDING→CONFIRMED), ship (CONFIRMED→SHIPPED), deliver (SHIPPED→DELIVERED), cancel (restores stock); ownership + valid-transition checks
+- [x] Seller dashboard: orders tab wired to real DB orders — status filter chips with counts, customer/items/date, action buttons per status; pending count on tab label
+- [x] Overview tab: recent orders from DB (was mock array)
+- [x] Header: سفارش‌های من links (dropdown + mobile) for buyers → /account/orders; sellers → dashboard
+- [x] Shared helpers: `src/lib/orderStatus.ts` (Persian status labels, badge classes, fa-IR date format)
+- Note: payment integration still pending — sellers mark delivered manually (cash-on-delivery style flow for now)
 
 ### Priority 7: Missing Pages
 - [ ] User profile / account settings
 - [ ] Seller profile page (public)
-- [ ] Wishlist / favorites
+- [x] Wishlist / favorites (model + `/api/wishlist` toggle + WishlistButton on product page)
 - [ ] Reviews & ratings (submit, display)
-- [ ] Checkout / payment page
-- [ ] Order confirmation / thank you page
+- [x] Checkout / payment page (`/checkout`)
+- [x] Order confirmation / thank you page (checkout success screen)
 
 ### Priority 8: Quality & UX
 - [ ] Loading states (`loading.tsx` / Suspense boundaries)
