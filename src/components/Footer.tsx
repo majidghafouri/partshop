@@ -67,7 +67,7 @@ export default async function Footer() {
             <h3 className="font-bold text-sm mb-4">پشتیبانی</h3>
             <ul className="space-y-2">
               <li className="text-sm text-muted-foreground">تلفن: ۰۲۱-۱۲۳۴۵۶۷۸</li>
-              <li className="text-sm text-muted-foreground">ایمیل: support@partshop.ir</li>
+              <li className="text-sm text-muted-foreground">ایمیل: support@partshops.ir</li>
               <li className="text-sm text-muted-foreground">ساعات کاری: ۹ الی ۱۸</li>
             </ul>
           </div>

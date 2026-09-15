@@ -71,7 +71,7 @@
 - [x] Header: logged-in user dropdown (name, seller panel link, logout), logged-out shows ورود|ثبت‌نام; header search wired to `/browse?search=`
 - [x] `AUTH_SECRET` in `.env.local`
 - [x] Set `AUTH_SECRET` on Vercel + push Session/OtpCode/Wishlist tables to Neon (prod DB)
-- [x] Google social login: `/api/auth/google` (consent redirect, CSRF state cookie) + `/api/auth/google/callback` (code→token exchange, userinfo, upsert/link/create user, session). `googleId` column on User (nullable, unique). Buttons on login + register pages. Redirect URIs: prod `https://mekan-blond.vercel.app/api/auth/google/callback`, local `http://localhost:3000/api/auth/google/callback`. Needs `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` envs (Google Cloud Console → Credentials → OAuth client, type Web application) — gracefully shows «پیکربندی نشده» until set
+- [x] Google social login: `/api/auth/google` (consent redirect, CSRF state cookie) + `/api/auth/google/callback` (code→token exchange, userinfo, upsert/link/create user, session). `googleId` column on User (nullable, unique). Buttons on login + register pages. Redirect URIs: prod `https://partshops.ir/api/auth/google/callback`, local `http://localhost:3000/api/auth/google/callback`. Needs `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` envs (Google Cloud Console → Credentials → OAuth client, type Web application) — gracefully shows «پیکربندی نشده» until set
 - [ ] SMS provider for real OTP delivery (Kavenegar / SMS.ir / Farapayamak) — dev returns code in response
 - [ ] Email verification flow
 - [ ] User profile / account page

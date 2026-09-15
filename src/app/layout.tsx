@@ -4,6 +4,7 @@ import HeaderServer from "@/components/HeaderServer";
 import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://partshops.ir"),
   title: "پارت شاپ | بازار آنلاین لوازم یدکی خودرو",
   description: "خرید و فروش لوازم یدکی خودرو با ضمانت اصالت کالا. قطعات موتوری، بدنه، ترمز، برقی و تمامی لوازم یدکی خودروهای ایرانی و خارجی.",
 };
